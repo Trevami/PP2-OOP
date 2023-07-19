@@ -1,17 +1,28 @@
 import pygame
+from classes.RectSubsurface import RectSubsurface
 
 
-class TraceSurface(pygame.Surface):
-    def __init__(self, size, *args, **kwargs):
-        super().__init__(size, *args, **kwargs)
+class TraceSubsurface(RectSubsurface):
+    def __init__(self, surf: pygame.Surface, left: float, top: float, width: float, height: float, **kwargs):
+        super().__init__(surf, left, top, width, height)
+        defaultKwargs = {
+            "surf_color": pygame.Color(0, 0, 0),
+            "trace_color": pygame.Color(100, 220, 0),
+            "trace_width": 2,
+            "cross_color": pygame.Color(25, 22, 20),
+            "cross_size": 6,
+            "cross_line_width": 3,
+            "cross": True
+        }
+        kwargs = defaultKwargs | kwargs
         self.trace = []
-        self.surf_color = pygame.Color(0, 0, 0)
-        self.trace_color = pygame.Color(100, 220, 0)
-        self.trace_width = 2
-        self.cross_color = pygame.Color(25, 22, 20)
-        self.cross_size = 6
-        self.cross_line_width = 3
-        self.cross = True
+        self.surf_color = kwargs["surf_color"]
+        self.trace_color = kwargs["trace_color"]
+        self.trace_width = kwargs["trace_width"]
+        self.cross_color = kwargs["cross_color"]
+        self.cross_size = kwargs["cross_size"]
+        self.cross_line_width = kwargs["cross_line_width"]
+        self.cross = kwargs["cross"]
 
     def append_trace_pt(self, point):
         self.trace.append(point)
@@ -21,7 +32,7 @@ class TraceSurface(pygame.Surface):
 
     def draw_trace(self):
         pygame.draw.lines(
-            self,
+            self.surf,
             self.trace_color,
             False,
             self.trace,
@@ -34,11 +45,11 @@ class TraceSurface(pygame.Surface):
         self.cross_color = palette["cross_color"]
 
     def clear_surface(self):
-        self.fill(self.surf_color)
+        self.surf.fill(self.surf_color)
 
     def draw_cross(self):
         if self.cross:
-            center = (self.get_width() / 2, self.get_height() / 2)
+            center = (self.surf.get_width() / 2, self.surf.get_height() / 2)
             cross_points = [
                 ((center[0] - self.cross_size,  center[1] - self.cross_size),
                  (center[0] + self.cross_size,  center[1] + self.cross_size)),
@@ -48,7 +59,7 @@ class TraceSurface(pygame.Surface):
 
             for pt1, pt2 in cross_points:
                 pygame.draw.line(
-                    self,
+                    self.surf,
                     self.cross_color,
                     pt1,
                     pt2,

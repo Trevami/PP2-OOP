@@ -1,10 +1,11 @@
 import pygame
 import numpy as np
+from classes.RectSubsurface import RectSubsurface
 
 
-class Slider(pygame.Rect):
+class Slider(RectSubsurface):
     def __init__(self, surf: pygame.Surface, left: float, top: float, width: float, height: float, **kwargs):
-        super().__init__(left, top, width, height)
+        super().__init__(surf, left, top, width, height)
         defaultKwargs = {
             "min": 1.0,
             "max": 100.0,
@@ -20,7 +21,6 @@ class Slider(pygame.Rect):
             "type": "int"
         }
         kwargs = defaultKwargs | kwargs
-        self.surf = surf.subsurface(self)
         self.bar_x_pos = 0
         self.bar_y_pos = 0
         self.value = kwargs["start"]

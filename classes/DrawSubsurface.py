@@ -1,12 +1,16 @@
 import pygame
 from functions.vectors_and_interpolation import get_shape_length, lin_interpolate
-from classes.TraceSurface import TraceSurface
+from classes.TraceSubsurface import TraceSubsurface
 
 
-class DrawSurface(TraceSurface):
-    def __init__(self, size: tuple, *args, **kwargs):
-        super().__init__(size, *args, **kwargs)
-        self.surf_color = pygame.Color(50, 50, 50)
+class DrawSubsurface(TraceSubsurface):
+    def __init__(self, surf: pygame.Surface, left: float, top: float, width: float, height: float, **kwargs):
+        super().__init__(surf, left, top, width, height, **kwargs)
+        defaultKwargs = {
+            "surf_color": pygame.Color(50, 50, 50),
+        }
+        kwargs = defaultKwargs | kwargs
+        self.surf_color = kwargs["surf_color"]
 
     def close_trace(self):
         # Linear interpolation between last and first point of trace.

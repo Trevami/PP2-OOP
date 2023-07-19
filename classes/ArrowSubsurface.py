@@ -1,26 +1,38 @@
 import pygame
 import math
 import cmath
-from classes.TraceSurface import TraceSurface
+from classes.TraceSubsurface import TraceSubsurface
 from classes.Arrow import RotArrow
 from classes.Slider import Slider
 from functions.vectors_and_interpolation import get_vec_screen_pos, lin_interpolate_shape
 
-class ArrowSurface(TraceSurface):
-    def __init__(self, size, *args, **kwargs):
-        super().__init__(size, *args, **kwargs)
+
+class ArrowSubsurface(TraceSubsurface):
+    def __init__(self, surf: pygame.Surface, left: float, top: float, width: float, height: float, **kwargs):
+        super().__init__(surf, left, top, width, height, **kwargs)
+        defaultKwargs = {
+            "shape_interpol_pts": 420, # Should be around or higher than the number of arrows.
+            "trace_length": 3000,
+            "surf_color": pygame.Color(25, 22, 20),
+            "arrow_color": pygame.Color(80, 80, 80),
+            "arrow1_color": pygame.Color(40, 120, 40),
+            "cross_color": pygame.Color(80, 80, 80),
+            "shape_color": pygame.Color(0, 80, 200),
+            "shape": True,
+        }
+        kwargs = defaultKwargs | kwargs
         self.arrow_group = pygame.sprite.Group()
         self.arrow_slider = self._create_arrow_slider()
         self.shape_points = []
         self.time_factor = self.set_time_factor() # Should be changed
-        self.shape_interpol_pts = 420 # Should be around or higher than the number of arrows.
-        self.trace_length = 3000
-        self.surf_color = pygame.Color(25, 22, 20)
-        self.arrow_color = pygame.Color(80, 80, 80)
-        self.arrow1_color = pygame.Color(40, 120, 40)
-        self.cross_color = self.arrow_color
-        self.shape = True
-        self.shape_color = pygame.Color(0, 80, 200)
+        self.shape_interpol_pts = kwargs["shape_interpol_pts"]
+        self.trace_length = kwargs["trace_length"]
+        self.surf_color = kwargs["surf_color"]
+        self.arrow_color = kwargs["arrow_color"]
+        self.arrow1_color = kwargs["arrow1_color"]
+        self.cross_color = kwargs["cross_color"]
+        self.shape = kwargs["shape"]
+        self.shape_color = kwargs["shape_color"]
         self.set_time_factor()
 
     def set_time_factor(self, speed=3):
@@ -33,6 +45,9 @@ class ArrowSurface(TraceSurface):
         if len(self.shape_points) >= 3:
             # Removes old arrows.
             self.clear_arrows()
+
+            surf_width = self.surf.get_width()
+            surf_height = self.surf.get_height()
 
             # Calculates arrow init parameters.
             # The var: constant sets the init size (real part) and the angle (imag part) of arrow.
@@ -51,7 +66,7 @@ class ArrowSurface(TraceSurface):
                     # f(t) function, composed of x_pos (real part) and y_pos (imag part) of data point:
                     function = self.shape_points[point_k][0] + self.shape_points[point_k][1] * 1j
                     # Offset position correction for shape center to center of surface:
-                    function -= self.get_width() / 2 + self.get_height() / 2 * 1j
+                    function -= surf_width / 2 + surf_height / 2 * 1j
                     # Function for calculation of constant c_i (index i) term of arrow:
                     constant += function * cmath.exp(exp_mult * 2 * math.pi * 1j * t) * dt
                 
@@ -62,8 +77,8 @@ class ArrowSurface(TraceSurface):
 
             # Sets the anchor position to center of ArrowSurface for first arrow.
             self.arrow_group.sprites()[0].set_anchor(
-                (self.get_width() - self.arrow_group.sprites()[0].surf.get_width()) / 2,
-                (self.get_height() - self.arrow_group.sprites()[0].surf.get_height()) / 2
+                (surf_width - self.arrow_group.sprites()[0].surf.get_width()) / 2,
+                (surf_height - self.arrow_group.sprites()[0].surf.get_height()) / 2
             )
 
     def _create_arrow_slider(self):
@@ -71,13 +86,13 @@ class ArrowSurface(TraceSurface):
         slider_margin_sides = 50
         slider_margin_bottom = 20
         # Sets width and height of the Slider.
-        slider_width = self.get_width() - (2 * slider_margin_sides)
+        slider_width = self.surf.get_width() - (2 * slider_margin_sides)
         slider_height = 30
         # Creates a slider.
         return Slider(
-            self,
+            self.surf,
             slider_margin_sides,
-            (self.get_height() - (slider_margin_bottom + slider_height)),
+            (self.surf.get_height() - (slider_margin_bottom + slider_height)),
             slider_width,
             slider_height,
             min=10,
@@ -120,7 +135,7 @@ class ArrowSurface(TraceSurface):
 
     def draw_trace(self):
         pygame.draw.lines(
-            self,
+            self.surf,
             self.trace_color,
             False,
             self.trace[1:],
@@ -129,13 +144,13 @@ class ArrowSurface(TraceSurface):
 
     def draw_update(self):
         self.clear_surface()
-        self.fill(self.surf_color)
+        self.surf.fill(self.surf_color)
         self.draw_cross()
 
         # Draws shape (optional):
         if len(self.shape_points) >= 3 and self.shape:
             pygame.draw.lines(
-                self,
+                self.surf,
                 self.shape_color,
                 False,
                 self.shape_points,
@@ -146,7 +161,7 @@ class ArrowSurface(TraceSurface):
         for arrow in self.arrow_group:
             arrow.surf.set_colorkey(pygame.Color(255, 255, 255))
             arrow.color = self.arrow_color
-            self.blit(arrow.surf, arrow.get_anchor())
+            self.surf.blit(arrow.surf, arrow.get_anchor())
 
         if len(self.arrow_group):
             # Changes first arrow.
