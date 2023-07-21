@@ -33,31 +33,29 @@ class Slider(RectSubsurface):
         self.background_color = kwargs["background_color"]
         self.type = kwargs["type"]
         self.pressed = False
-        self.value_pos_lookup = self._get_value_pos_lookup(
+        self.pos_value_lookup = self._get_value_pos_lookup(
             kwargs["min"], kwargs["max"], kwargs["ticks"])
+        self._init_slider_bar_pos()
+
+    def set_new_values(self, min_value: float, max_value: float, num_value_ticks: int):
+        self.pos_value_lookup = self._get_value_pos_lookup(
+            self, min_value, max_value, num_value_ticks)
+        
+    def set_draw_palette(self, palette: dict):
+        self.bar_color = palette["bar_color"]
+        self.bar_color_pressed = palette["bar_color_pressed"]
+        self.background_color = palette["background_color"]
 
     def get_font_width(self, value: float):
         # Returns the width of the slider text.
         font = self.font.render(
             f"{self.value_text}: {value}", True, pygame.Color(0, 0, 0))
         return font.get_width()
-
-    def _input_check(self, min_value: float, max_value: float, num_value_ticks: int):
-        # Throws exceptions if wrong input for _get_value_pos_lookup().
-        if min_value >= max_value:
-            raise ValueError(
-                f"Wrong range arguments min: {min_value}, max: {max_value}")
-        if num_value_ticks < 0:
-            raise ValueError(
-                f"Invalid ticks argument of {num_value_ticks}, must be > 0")
-        if self.type != "int" and self.type != "float":
-            raise ValueError(
-                f"Invalid type argument {self.type}, must be int or float")
-
+    
     def _get_value_pos_lookup(self, min_value: float, max_value: float, num_value_ticks: int):
         self._input_check(min_value, max_value, num_value_ticks)
 
-        # Gets the width of the font:
+        # Gets the max width of the font:
         # Differences in type font width due to decimal places of float
         if self.type == "int":
             font_width = self.get_font_width(int(max_value))
@@ -77,21 +75,25 @@ class Slider(RectSubsurface):
         # Generates a list of corresponding x_pos data.
         # Linear ratio calculation are used for x_pos calculation.
         x_pos_value_ratio = (x_max - x_min) / value_delta
-        value_ticks_x_pos = [(value - values[0]) *
+        value_ticks_x_pos = [(value - min_value) *
                              x_pos_value_ratio + x_min for value in values]
         
-        # Fills the output lookup table with tick x_pos : tick value entries.
-        value_lookup = {}
-        for i in range(len(values)):
-            if self.type == "int":
-                value_lookup.update({value_ticks_x_pos[i]: int(values[i])})
-            else:
-                value_lookup.update({value_ticks_x_pos[i]: float(values[i])})
-
+        # Generates the output lookup table with tick x_pos : tick value entries.
+        if self.type == "int":
+            return {x_pos: int(value) for x_pos, value in zip(value_ticks_x_pos, values)}
+        else:
+            return {x_pos: float(value) for x_pos, value in zip(value_ticks_x_pos, values)}
+    
+    def _init_slider_bar_pos(self):
         # Sets the start position to the bar to specified position.
         # Linear ratio calculations are used for x_pos determination.
         # Value position will be lost after the x_pos of the bar is changed.
         # Minimum value is used if not specified in **kwargs.
+
+        values = list(self.pos_value_lookup.values())
+        x_pos = list(self.pos_value_lookup.keys())
+        x_pos_value_ratio = (x_pos[-1] - x_pos[0]) / (values[-1] - values[0])
+
         if self.value and self.value >= values[0] and self.value <= values[-1]:
             if self.type == "int":
                 # Converts to int for consistency.
@@ -102,20 +104,41 @@ class Slider(RectSubsurface):
 
             # Sets position.
             self.bar_x_pos = (
-                self.value - values[0]) * x_pos_value_ratio + x_min
+                self.value - values[0]) * x_pos_value_ratio + x_pos[0]
         else:
-            self.value = min_value
+            self.value = values[0]
 
-        return value_lookup
+    def _input_check(self, min_value: float, max_value: float, num_value_ticks: int):
+        # Throws exceptions if wrong input for _get_value_pos_lookup().
+        if min_value >= max_value:
+            raise ValueError(
+                f"Wrong range arguments min: {min_value}, max: {max_value}")
+        if num_value_ticks < 0:
+            raise ValueError(
+                f"Invalid ticks argument of {num_value_ticks}, must be > 0")
+        if self.type != "int" and self.type != "float":
+            raise ValueError(
+                f"Invalid type argument {self.type}, must be int or float")
 
-    def set_new_values(self, min_value: float, max_value: float, num_value_ticks: int):
-        self.value_pos_lookup = self._get_value_pos_lookup(
-            self, min_value, max_value, num_value_ticks)
+    def update_x_pos(self, x_pos: float):
+        # Sets the input x_pos to the center of the bar.
+        x_pos = x_pos - self.bar_width / 2 - self.surf.get_abs_offset()[0]
 
-    def draw_slider(self):
-        # Fills background with color.
-        self.surf.fill(self.background_color)
+        # Gets a list of all possible x_pos values.
+        value_pos = list(self.pos_value_lookup.keys())
 
+        # Iterates trough possible x_pos pairs and checks if input x_pos is near to one.
+        # Sets the new x_pos of the bar to a set x_pos if input x_pos is near to it.
+        for i in range(1, len(value_pos)):
+            if x_pos >= value_pos[i - 1] and x_pos <= value_pos[i]:
+                if abs(x_pos - value_pos[i]) < abs(x_pos - value_pos[i - 1]):
+                    self.bar_x_pos = value_pos[i]
+                    self.value = self.pos_value_lookup[value_pos[i]]
+                else:
+                    self.bar_x_pos = value_pos[i - 1]
+                    self.value = self.pos_value_lookup[value_pos[i - 1]]
+
+    def _draw_bar(self):
         # Draw bar:
         rect_width = self.bar_width
         rect_height = self.surf.get_height()
@@ -135,32 +158,17 @@ class Slider(RectSubsurface):
             bar_color,
             slider_bar
         )
-
+    
+    def _draw_text(self):
         # Draw arrow text:
         arrow_text = self.font.render(
             f"{self.value_text}: {self.value}", True, self.bar_color_pressed)
         # Draw text:
         self.surf.blit(arrow_text, (self.font_margin, 0))
+    
+    def draw_update(self):
+        # Fills background with color.
+        self.surf.fill(self.background_color)
 
-    def update_x_pos(self, x_pos: float):
-        # Sets the input x_pos to the center of the bar.
-        x_pos = x_pos - self.bar_width / 2 - self.surf.get_abs_offset()[0]
-
-        # Gets a list of all possible x_pos values.
-        value_pos = list(self.value_pos_lookup.keys())
-
-        # Iterates trough possible x_pos pairs and checks if input x_pos is near to one.
-        # Sets the new x_pos of the bar to a set x_pos if input x_pos is near to it.
-        for i in range(1, len(value_pos)):
-            if x_pos >= value_pos[i - 1] and x_pos <= value_pos[i]:
-                if abs(x_pos - value_pos[i]) < abs(x_pos - value_pos[i - 1]):
-                    self.bar_x_pos = value_pos[i]
-                    self.value = self.value_pos_lookup[value_pos[i]]
-                else:
-                    self.bar_x_pos = value_pos[i - 1]
-                    self.value = self.value_pos_lookup[value_pos[i - 1]]
-
-    def set_draw_palette(self, palette: dict):
-        self.bar_color = palette["bar_color"]
-        self.bar_color_pressed = palette["bar_color_pressed"]
-        self.background_color = palette["background_color"]
+        self._draw_bar()
+        self._draw_text()

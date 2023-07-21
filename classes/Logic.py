@@ -57,11 +57,11 @@ class Logic:
                     self.objs["draw_mouse_pressed"] = False
 
                 if self.objs["slider_mouse_pressed"]:
-                    self.objs["arrow_surf"].arrow_slider.pressed = False
                     if self.objs["arrow_surf"].shape_points:
                         self.objs["arrow_surf"].create_arrows()
                         self.objs["arrow_surf"].clear_trace()
                         self.objs["arrow_surf"].clear_surf = True
+                    self.objs["arrow_surf"].arrow_slider.pressed = False
                     self.objs["slider_mouse_pressed"] = False
 
         state = pygame.mouse.get_pressed()
