@@ -22,7 +22,7 @@ def get_vec_screen_pos(arrow):
     """Calculates the absolute (x, y) position of the arrow on the blited surface.
 
     Args:
-        arrow (Arrow): arrow vector object 
+        arrow (Arrow): Arrow vector object
 
     Returns:
         tuple: (x, y) position of arrow vector
@@ -72,11 +72,11 @@ def lin_interpolate(point1: tuple, point2: tuple, num_interpol_pts: int):
 
     Args:
         point1 (tuple): first interpolation point (x, y)
-        point2 (tuple): second interpolation point (x, y)
+        point2 (tuple): last interpolation point (x, y)
         num_interpol_pts (int): number of interpolated points
 
     Returns:
-        list: list of interpolated points (x, y)
+        list: list of interpolated point tuples (x, y)
     """
     if num_interpol_pts < 1:
         return []
@@ -112,7 +112,7 @@ def get_shape_length(shape: list):
     """Calculates the distance between all given shape points.
 
     Args:
-        shape (list): list of shape points (x, y)
+        shape (list): list of shape point tuples (x, y)
 
     Returns:
         float/int: length of shape
@@ -131,11 +131,11 @@ def lin_interpolate_shape(shape: list, num_new_pts: int):
     No interpolation if number of new points is less than points in the reduced shape, reduced shape will be returned instead.
 
     Args:
-        shape (list): list of shape points (x, y)
+        shape (list): list of shape point tuples (x, y)
         num_new_pts (int): approx. number of new points
 
     Returns:
-        list: new list of interpolated shape points (x, y)
+        list: new list of interpolated shape point tuples (x, y)
     """
     # In reduced_shape point list duplicate points are removed (for interpolation).
     reduced_shape = list(dict.fromkeys(shape.copy()))

@@ -14,13 +14,12 @@ class Logic:
         screen_width = self.screen_surf.get_width()
         screen_height = self.screen_surf.get_height()
 
-        new_objs = {
+        self.objs.update({
             "arrow_surf": ArrowSubsurface(self.screen_surf, screen_width / 2, 0, screen_width / 2, screen_height),
             "draw_surf": DrawSubsurface(self.screen_surf, 0, 0, screen_width / 2, screen_height),
             "draw_mouse_pressed": False,
             "slider_mouse_pressed": False
-        }
-        self.objs.update(new_objs)
+        })
 
     def on_event_logic(self, event):
         if event.type == pygame.KEYDOWN:

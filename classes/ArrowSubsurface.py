@@ -31,8 +31,8 @@ class ArrowSubsurface(TraceSubsurface):
         self.arrow_color = kwargs["arrow_color"]
         self.arrow1_color = kwargs["arrow1_color"]
         self.cross_color = kwargs["cross_color"]
-        self.shape = kwargs["shape"]
         self.shape_color = kwargs["shape_color"]
+        self.shape = kwargs["shape"]
         self.set_time_factor()
 
     def set_time_factor(self, speed=3):
@@ -57,9 +57,6 @@ class ArrowSubsurface(TraceSubsurface):
             # Removes old arrows.
             self.clear_arrows()
 
-            surf_width = self.surf.get_width()
-            surf_height = self.surf.get_height()
-
             # Calculates arrow init parameters.
             # The var: constant sets the init size (real part) and the angle (imag part) of arrow.
             # The var: exp_mult determines the exp multipliers of Euler's equation.
@@ -77,13 +74,12 @@ class ArrowSubsurface(TraceSubsurface):
                     # f(t) function, composed of x_pos (real part) and y_pos (imag part) of data point:
                     function = self.shape_points[point_k][0] + self.shape_points[point_k][1] * 1j
                     # Offset position correction for shape center to center of surface:
-                    function -= surf_width / 2 + surf_height / 2 * 1j
+                    function -= self.surf.get_width() / 2 + self.surf.get_height() / 2 * 1j
                     # Function for calculation of constant c_i (index i) term of arrow:
                     constant += function * cmath.exp(exp_mult * 2 * math.pi * 1j * t) * dt
                 
                 # Initializes arrow with calculated parameters.
-                arrow = RotArrow(constant, exp_mult, 1, 10, True)
-                arrow.time_factor = self.time_factor
+                arrow = RotArrow(constant, exp_mult, color=self.arrow_color, time_factor=self.time_factor)
                 self.arrow_group.add(arrow)
 
             self._update_first_arrow()
@@ -120,8 +116,8 @@ class ArrowSubsurface(TraceSubsurface):
             arrow = self.arrow_group.sprites()[i]
             pev_arrow_vec_pos = get_vec_screen_pos(self.arrow_group.sprites()[i - 1])
             arrow.set_anchor(
-                (pev_arrow_vec_pos[0] - arrow.surf.get_width() / 2),
-                (pev_arrow_vec_pos[1] - arrow.surf.get_height() / 2)
+                ((pev_arrow_vec_pos[0] - arrow.surf.get_width() / 2),
+                (pev_arrow_vec_pos[1] - arrow.surf.get_height() / 2))
             )
 
         # Arrow update:
@@ -132,24 +128,22 @@ class ArrowSubsurface(TraceSubsurface):
     def _update_first_arrow(self):
         # Sets the anchor position to center of ArrowSurface for first arrow.
         self.arrow_group.sprites()[0].set_anchor(
-            (self.surf.get_width() - self.arrow_group.sprites()[0].surf.get_width()) / 2,
-            (self.surf.get_height() - self.arrow_group.sprites()[0].surf.get_height()) / 2
+            ((self.surf.get_width() - self.arrow_group.sprites()[0].surf.get_width()) / 2,
+            (self.surf.get_height() - self.arrow_group.sprites()[0].surf.get_height()) / 2)
         )
         # Changes color and circle of first arrow.
         self.arrow_group.sprites()[0].color = self.arrow1_color
-        self.arrow_group.sprites()[0].draw_circle = False
+        self.arrow_group.sprites()[0].circle = False
+
 
     def _draw_arrows(self):
         # Draws arrows.
         for arrow in self.arrow_group:
-            arrow.surf.set_colorkey(pygame.Color(255, 255, 255))
-            arrow.color = self.arrow_color
+            arrow.draw_update()
             self.surf.blit(arrow.surf, arrow.get_anchor())
 
     def _draw_trace(self):
         if len(self.arrow_group):
-            self._update_first_arrow()
-
             self.trace.append(get_vec_screen_pos(self.arrow_group.sprites()[-1]))
 
             if len(self.trace) > self.trace_length:
