@@ -4,6 +4,7 @@ import cmath
 from classes.TraceSubsurface import TraceSubsurface
 from classes.RotArrow import RotArrow
 from classes.Slider import Slider
+from classes.Button import Button
 from functions.vectors_and_interpolation import get_vec_screen_pos, lin_interpolate_shape
 
 
@@ -12,27 +13,30 @@ class ArrowSubsurface(TraceSubsurface):
         super().__init__(surf, left, top, width, height, **kwargs)
         defaultKwargs = {
             "shape_interpol_pts": 400, # Should be around or higher than the number of arrows.
+            "shape": True,
             "trace_length": 3000,
             "surf_color": pygame.Color(25, 22, 20),
             "arrow_color": pygame.Color(80, 80, 80),
             "arrow1_color": pygame.Color(40, 120, 40),
             "cross_color": pygame.Color(80, 80, 80),
             "shape_color": pygame.Color(0, 80, 200),
-            "shape": True,
+            "on_surf_item_margin": 20
         }
         kwargs = defaultKwargs | kwargs
-        self.arrow_group = pygame.sprite.Group()
+        self.on_surf_item_margin = kwargs["on_surf_item_margin"]
+        self._arrow_group = pygame.sprite.Group()
         self.arrow_slider = self._create_arrow_slider()
         self.shape_points = []
-        self.time_factor = self.set_time_factor() # Should be changed
         self.shape_interpol_pts = kwargs["shape_interpol_pts"]
+        self.shape = kwargs["shape"]
+        self.buttons = self._create_buttons()
+        self.time_factor = self.set_time_factor() # Should be changed
         self.trace_length = kwargs["trace_length"]
         self.surf_color = kwargs["surf_color"]
         self.arrow_color = kwargs["arrow_color"]
         self.arrow1_color = kwargs["arrow1_color"]
         self.cross_color = kwargs["cross_color"]
         self.shape_color = kwargs["shape_color"]
-        self.shape = kwargs["shape"]
         self.set_time_factor()
 
     def set_time_factor(self, speed=3):
@@ -80,22 +84,21 @@ class ArrowSubsurface(TraceSubsurface):
                 
                 # Initializes arrow with calculated parameters.
                 arrow = RotArrow(constant, exp_mult, color=self.arrow_color, time_factor=self.time_factor)
-                self.arrow_group.add(arrow)
+                self._arrow_group.add(arrow)
 
             self._update_first_arrow()
 
     def _create_arrow_slider(self):
-        # Sets the margins relative to the ArrowSurface
-        slider_margin_sides = 50
-        slider_margin_bottom = 20
+        # Sets the margin relative to the ArrowSurface
+        slider_margin = self.on_surf_item_margin
         # Sets width and height of the Slider.
-        slider_width = self.surf.get_width() - (2 * slider_margin_sides)
+        slider_width = self.surf.get_width() - (2 * slider_margin)
         slider_height = 30
         # Creates a slider.
         return Slider(
             self.surf,
-            slider_margin_sides,
-            (self.surf.get_height() - (slider_margin_bottom + slider_height)),
+            slider_margin,
+            (self.surf.get_height() - (slider_margin + slider_height)),
             slider_width,
             slider_height,
             min=10,
@@ -106,45 +109,62 @@ class ArrowSubsurface(TraceSubsurface):
             type="int"
             )
     
+    def _create_buttons(self):
+        button_margin = self.on_surf_item_margin
+        
+        shape_toggle_width = 35
+        shape_toggle_height = shape_toggle_width
+        shape_toggle_button = Button(
+            self.surf,
+            (self.surf.get_width() - (button_margin + shape_toggle_width)),
+            button_margin,
+            shape_toggle_width,
+            shape_toggle_height,
+            pressed = self.shape
+        )
+
+        return {
+            "shape_toggle": shape_toggle_button
+        }
+    
     def clear_arrows(self):
         # Deletes all arrows.
-        self.arrow_group.empty()
+        self._arrow_group.empty()
 
     def update_arrows(self):
         # Updates the arrows and the anchors of all arrows to the vector end of the previous arrow. 
-        for i in range(1, len(self.arrow_group)):
-            arrow = self.arrow_group.sprites()[i]
-            pev_arrow_vec_pos = get_vec_screen_pos(self.arrow_group.sprites()[i - 1])
+        for i in range(1, len(self._arrow_group)):
+            arrow = self._arrow_group.sprites()[i]
+            pev_arrow_vec_pos = get_vec_screen_pos(self._arrow_group.sprites()[i - 1])
             arrow.set_anchor(
                 ((pev_arrow_vec_pos[0] - arrow.surf.get_width() / 2),
                 (pev_arrow_vec_pos[1] - arrow.surf.get_height() / 2))
             )
 
         # Arrow update:
-        for arrow in self.arrow_group:
+        for arrow in self._arrow_group:
             arrow.time_factor = self.time_factor
             arrow.update()
 
     def _update_first_arrow(self):
         # Sets the anchor position to center of ArrowSurface for first arrow.
-        self.arrow_group.sprites()[0].set_anchor(
-            ((self.surf.get_width() - self.arrow_group.sprites()[0].surf.get_width()) / 2,
-            (self.surf.get_height() - self.arrow_group.sprites()[0].surf.get_height()) / 2)
+        self._arrow_group.sprites()[0].set_anchor(
+            ((self.surf.get_width() - self._arrow_group.sprites()[0].surf.get_width()) / 2,
+            (self.surf.get_height() - self._arrow_group.sprites()[0].surf.get_height()) / 2)
         )
         # Changes color and circle of first arrow.
-        self.arrow_group.sprites()[0].color = self.arrow1_color
-        self.arrow_group.sprites()[0].circle = False
-
+        self._arrow_group.sprites()[0].color = self.arrow1_color
+        self._arrow_group.sprites()[0].circle = False
 
     def _draw_arrows(self):
         # Draws arrows.
-        for arrow in self.arrow_group:
+        for arrow in self._arrow_group:
             arrow.draw_update()
             self.surf.blit(arrow.surf, arrow.get_anchor())
 
     def _draw_trace(self):
-        if len(self.arrow_group):
-            self.trace.append(get_vec_screen_pos(self.arrow_group.sprites()[-1]))
+        if len(self._arrow_group):
+            self.trace.append(get_vec_screen_pos(self._arrow_group.sprites()[-1]))
 
             if len(self.trace) > self.trace_length:
                 self.trace.pop(0)
@@ -181,3 +201,5 @@ class ArrowSubsurface(TraceSubsurface):
         self._draw_arrows()
         self._draw_trace()
         self._draw_slider()
+        for button in self.buttons.values():
+            button.draw_update()

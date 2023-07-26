@@ -11,7 +11,7 @@ class RotArrow(pygame.sprite.Sprite):
             "anchor_y": 0,
             "color": pygame.Color(80, 80, 80),
             "line_width": 1,
-            "head_rel_size": 10,
+            "head_size": 10,
             "circle": True
         }
         kwargs = defaultKwargs | kwargs
@@ -24,7 +24,7 @@ class RotArrow(pygame.sprite.Sprite):
         self.anchor_y = kwargs["anchor_y"]
         self.color = kwargs["color"]
         self.line_width = kwargs["line_width"]
-        self.head_rel_size = kwargs["head_rel_size"]
+        self.head_size = kwargs["head_size"]
         self.circle = kwargs["circle"]
         self.update()
 
@@ -92,10 +92,10 @@ class RotArrow(pygame.sprite.Sprite):
         vector_angle = self.vector.angle_to(pygame.math.Vector2(1, 0))
         # vt: vector top, vb: vector bottom, if arrow vector points to the right
         head_vt_angle = head_angle - vector_angle
-        head_vt = pygame.math.Vector2(-self.head_rel_size,
+        head_vt = pygame.math.Vector2(-self.head_size,
                                       0).rotate(head_vt_angle)
         head_vb_angle = head_angle + vector_angle
-        head_vb = pygame.math.Vector2(-self.head_rel_size,
+        head_vb = pygame.math.Vector2(-self.head_size,
                                       0).rotate(-head_vb_angle)
         pos_head = [
             (line_pos[0] + head_vt.x, line_pos[1] + head_vt.y),

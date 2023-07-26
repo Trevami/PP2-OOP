@@ -29,19 +29,25 @@ class Logic:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
+
                 if self.objs["draw_surf"].get_abs_bbox().collidepoint(mouse_pos):
                     self.objs["draw_surf"].clear_trace()
                     self.objs["draw_surf"].clear_surf = True
                     self.objs["draw_mouse_pressed"] = True
 
-                if self.objs["arrow_surf"].arrow_slider.get_abs_bbox().collidepoint(mouse_pos):
-                    self.objs["arrow_surf"].arrow_slider.pressed = True
+                arrow_slider = self.objs["arrow_surf"].arrow_slider
+                if arrow_slider.get_abs_bbox().collidepoint(mouse_pos):
+                    arrow_slider.pressed = True
                     self.objs["slider_mouse_pressed"] = True
+
+                shape_toggle_button = self.objs["arrow_surf"].buttons["shape_toggle"]
+                if shape_toggle_button.get_abs_bbox().collidepoint(mouse_pos):
+                    shape_toggle_button.update_toggle()
+                    self.objs["arrow_surf"].shape = shape_toggle_button.pressed
 
         if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
-                if self.objs["draw_mouse_pressed"]:
-
+                if self.objs["draw_mouse_pressed"] and len(self.objs["draw_surf"].trace) >= 3:
                     # Closes Trace after mouse release
                     self.objs["draw_surf"].close_trace()
 
