@@ -17,7 +17,7 @@ class RotArrow(pygame.sprite.Sprite):
         kwargs = defaultKwargs | kwargs
         self.surf = pygame.Surface((abs(constant * 2), abs(constant * 2)))
         self.vector = get_vector(constant, angle)
-        self.constant = constant # constant c_i
+        self.constant = constant  # constant c_i
         self.angle = angle
         self.time_factor = kwargs["time_factor"]
         self.anchor_x = kwargs["anchor_x"]
@@ -65,6 +65,12 @@ class RotArrow(pygame.sprite.Sprite):
         """
         self.surf.fill(pygame.Color(255, 255, 255))
         self.surf.set_colorkey(pygame.Color(255, 255, 255))
+
+    def _update_head_size(self):
+        """Updates the head size of the arrow to half the arrow size if the arrow is smaller than half the specified head size.
+        """
+        if self.surf.get_width() < (self.head_size * 2):
+            self.head_size = self.surf.get_width() / 2
 
     def _draw_arrow_line(self, pos: tuple):
         """Draws the arrow line onto the draw surface.
@@ -128,7 +134,7 @@ class RotArrow(pygame.sprite.Sprite):
         """
         # Surface center pos.
         center = (self.surf.get_width() / 2, self.surf.get_height() / 2)
-        # End of arrow line pos. 
+        # End of arrow line pos.
         pos_end_line = (center[0] + self.vector.x, center[1] + self.vector.y)
 
         self._draw_arrow_line(center)
@@ -140,4 +146,5 @@ class RotArrow(pygame.sprite.Sprite):
         Clears the draw surface and redraws the arrow. 
         """
         self.clear_surface()
+        self._update_head_size()
         self._draw_arrow()
