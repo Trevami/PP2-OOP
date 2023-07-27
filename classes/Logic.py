@@ -35,15 +35,26 @@ class Logic:
                     self.objs["draw_surf"].clear_surf = True
                     self.objs["draw_mouse_pressed"] = True
 
-                arrow_slider = self.objs["arrow_surf"].arrow_slider
-                if arrow_slider.get_abs_bbox().collidepoint(mouse_pos):
-                    arrow_slider.pressed = True
-                    self.objs["slider_mouse_pressed"] = True
+                settings_toggle_button = self.objs["arrow_surf"].setting_button
+                if settings_toggle_button.get_abs_bbox().collidepoint(mouse_pos):
+                    settings_toggle_button.update_toggle()
+                    self.objs["arrow_surf"].settigs_overlay.show = settings_toggle_button.pressed
 
-                shape_toggle_button = self.objs["arrow_surf"].buttons["shape_toggle"]
-                if shape_toggle_button.get_abs_bbox().collidepoint(mouse_pos):
-                    shape_toggle_button.update_toggle()
-                    self.objs["arrow_surf"].shape = shape_toggle_button.pressed
+                if self.objs["arrow_surf"].settigs_overlay.show:
+                    arrow_slider = self.objs["arrow_surf"].settigs_overlay.arrow_slider
+                    if arrow_slider.get_abs_bbox().collidepoint(mouse_pos):
+                        arrow_slider.pressed = True
+                        self.objs["slider_mouse_pressed"] = True
+
+                    shape_toggle_button = self.objs["arrow_surf"].settigs_overlay.buttons["shape_toggle"]
+                    if shape_toggle_button.get_abs_bbox().collidepoint(mouse_pos):
+                        shape_toggle_button.update_toggle()
+                        self.objs["arrow_surf"].shape = shape_toggle_button.pressed
+
+                    circle_toggle_button = self.objs["arrow_surf"].settigs_overlay.buttons["circle_toggle"]
+                    if circle_toggle_button.get_abs_bbox().collidepoint(mouse_pos):
+                        circle_toggle_button.update_toggle()
+                        self.objs["arrow_surf"].set_arrow_circles(circle_toggle_button.pressed)
 
         if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
@@ -66,18 +77,18 @@ class Logic:
                         self.objs["arrow_surf"].create_arrows()
                         self.objs["arrow_surf"].clear_trace()
                         self.objs["arrow_surf"].clear_surf = True
-                    self.objs["arrow_surf"].arrow_slider.pressed = False
+                    self.objs["arrow_surf"].settigs_overlay.arrow_slider.pressed = False
                     self.objs["slider_mouse_pressed"] = False
 
         state = pygame.mouse.get_pressed()
         if state[0]:
             mouse_pos = pygame.mouse.get_pos()
 
-            if self.objs["draw_surf"].get_abs_bbox().collidepoint(mouse_pos):
+            if self.objs["draw_surf"].get_abs_bbox().collidepoint(mouse_pos) and self.objs["draw_mouse_pressed"]:
                 self.objs["draw_surf"].append_trace_pt(mouse_pos)
 
-            if self.objs["arrow_surf"].arrow_slider.get_abs_bbox().collidepoint(mouse_pos):
-                self.objs["arrow_surf"].arrow_slider.update_x_pos(mouse_pos[0])
+            if self.objs["arrow_surf"].settigs_overlay.arrow_slider.get_abs_bbox().collidepoint(mouse_pos):
+                self.objs["arrow_surf"].settigs_overlay.arrow_slider.update_x_pos(mouse_pos[0])
 
     def on_loop_logic(self):
         self.objs["arrow_surf"].update_arrows()

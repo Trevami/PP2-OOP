@@ -3,8 +3,8 @@ import math
 import cmath
 from classes.TraceSubsurface import TraceSubsurface
 from classes.RotArrow import RotArrow
-from classes.Slider import Slider
 from classes.Button import Button
+from classes.SettingsOverlay import SettingsOverlay
 from functions.vectors_and_interpolation import get_vec_screen_pos, lin_interpolate_shape
 
 
@@ -13,7 +13,8 @@ class ArrowSubsurface(TraceSubsurface):
         super().__init__(surf, left, top, width, height, **kwargs)
         defaultKwargs = {
             "shape_interpol_pts": 400, # Should be around or higher than the number of arrows.
-            "shape": True,
+            "shape": False,
+            "arrow_circles": True,
             "trace_length": 3000,
             "surf_color": pygame.Color(25, 22, 20),
             "arrow_color": pygame.Color(80, 80, 80),
@@ -25,11 +26,12 @@ class ArrowSubsurface(TraceSubsurface):
         kwargs = defaultKwargs | kwargs
         self.on_surf_item_margin = kwargs["on_surf_item_margin"]
         self._arrow_group = pygame.sprite.Group()
-        self.arrow_slider = self._create_arrow_slider()
         self.shape_points = []
         self.shape_interpol_pts = kwargs["shape_interpol_pts"]
         self.shape = kwargs["shape"]
-        self.buttons = self._create_buttons()
+        self.arrow_circles = kwargs["arrow_circles"]
+        self.setting_button = self._create_settings_button()
+        self.settigs_overlay = self._create_settings_overlay()
         self.time_factor = self.set_time_factor() # Should be changed
         self.trace_length = kwargs["trace_length"]
         self.surf_color = kwargs["surf_color"]
@@ -56,6 +58,11 @@ class ArrowSubsurface(TraceSubsurface):
         self.arrow_color = palette["arrow_color"]
         self.arrow1_color = palette["arrow1_color"]
 
+    def set_arrow_circles(self, state: bool):
+        self.arrow_circles = state
+        for arrow in list(self._arrow_group)[1:]:
+            arrow.circle = self.arrow_circles
+
     def create_arrows(self):
         if len(self.shape_points) >= 3:
             # Removes old arrows.
@@ -65,7 +72,7 @@ class ArrowSubsurface(TraceSubsurface):
             # The var: constant sets the init size (real part) and the angle (imag part) of arrow.
             # The var: exp_mult determines the exp multipliers of Euler's equation.
             exp_mult = 0 # Start point for series generation.
-            for i in range(int(self.arrow_slider.value)):
+            for i in range(int(self.settigs_overlay.arrow_slider.value)):
                 # Generates a series of exp multipliers: 0, -1, 1, -2, 2 ...
                 exp_mult += (-1)**i * -i
                 constant = 0
@@ -83,49 +90,38 @@ class ArrowSubsurface(TraceSubsurface):
                     constant += function * cmath.exp(exp_mult * 2 * math.pi * 1j * t) * dt
                 
                 # Initializes arrow with calculated parameters.
-                arrow = RotArrow(constant, exp_mult, color=self.arrow_color, time_factor=self.time_factor)
+                arrow = RotArrow(
+                    constant,
+                    exp_mult,
+                    color=self.arrow_color,
+                    time_factor=self.time_factor,
+                    circle=self.arrow_circles
+                    )
                 self._arrow_group.add(arrow)
 
             self._update_first_arrow()
-
-    def _create_arrow_slider(self):
-        # Sets the margin relative to the ArrowSurface
-        slider_margin = self.on_surf_item_margin
-        # Sets width and height of the Slider.
-        slider_width = self.surf.get_width() - (2 * slider_margin)
-        slider_height = 30
-        # Creates a slider.
-        return Slider(
-            self.surf,
-            slider_margin,
-            (self.surf.get_height() - (slider_margin + slider_height)),
-            slider_width,
-            slider_height,
-            min=10,
-            max=200,
-            ticks=19,
-            start=40,
-            text="Arrows",
-            type="int"
-            )
     
-    def _create_buttons(self):
-        button_margin = self.on_surf_item_margin
-        
-        shape_toggle_width = 35
-        shape_toggle_height = shape_toggle_width
-        shape_toggle_button = Button(
+    def _create_settings_button(self):
+        button_width = 35
+        button_height = button_width
+        return Button(
             self.surf,
-            (self.surf.get_width() - (button_margin + shape_toggle_width)),
-            button_margin,
-            shape_toggle_width,
-            shape_toggle_height,
-            pressed = self.shape
+            self.on_surf_item_margin,
+            self.on_surf_item_margin,
+            button_width,
+            button_height,
+            pressed = False
         )
-
-        return {
-            "shape_toggle": shape_toggle_button
-        }
+    
+    def _create_settings_overlay(self):
+        return SettingsOverlay(
+            self,
+            0,
+            0,
+            self.surf.get_width(),
+            self.surf.get_height(),
+            show=self.setting_button.pressed
+        )
     
     def clear_arrows(self):
         # Deletes all arrows.
@@ -189,8 +185,11 @@ class ArrowSubsurface(TraceSubsurface):
                 width=int(self.trace_width / 2)
             )
 
-    def _draw_slider(self):
-        self.arrow_slider.draw_update()
+    def _draw_setting_button(self):
+        self.setting_button.draw_update()
+
+    def _draw_settigs_overlay(self):
+        self.settigs_overlay.draw_update()
 
     def draw_update(self):
         self.clear_surface()
@@ -200,6 +199,5 @@ class ArrowSubsurface(TraceSubsurface):
         self._draw_shape()
         self._draw_arrows()
         self._draw_trace()
-        self._draw_slider()
-        for button in self.buttons.values():
-            button.draw_update()
+        self._draw_settigs_overlay()
+        self._draw_setting_button()
