@@ -48,9 +48,7 @@ class Slider(RectSubsurface):
 
     def get_font_width(self, value: float):
         # Returns the width of the slider text.
-        font = self.font.render(
-            f"{self.value_text}: {value}", True, pygame.Color(0, 0, 0))
-        return font.get_width()
+        return self.font.size(f"{self.value_text}: {value}")[0]
     
     def _get_value_pos_lookup(self, min_value: float, max_value: float, num_value_ticks: int):
         self._input_check(min_value, max_value, num_value_ticks)
@@ -160,11 +158,11 @@ class Slider(RectSubsurface):
         )
     
     def _draw_text(self):
-        # Draw arrow text:
-        arrow_text = self.font.render(
+        # Draw text:
+        text = self.font.render(
             f"{self.value_text}: {self.value}", True, self.bar_color_pressed)
         # Draw text:
-        self.surf.blit(arrow_text, (self.font_margin, 0))
+        self.surf.blit(text, (self.font_margin, 0))
     
     def draw_update(self):
         # Fills background with color.
