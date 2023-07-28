@@ -10,6 +10,7 @@ class RotArrow(pygame.sprite.Sprite):
             "anchor_x": 0,
             "anchor_y": 0,
             "color": pygame.Color(80, 80, 80),
+            "circle_color": pygame.Color(60, 60, 60),
             "line_width": 1,
             "head_size": 10,
             "circle": True
@@ -23,6 +24,7 @@ class RotArrow(pygame.sprite.Sprite):
         self.anchor_x = kwargs["anchor_x"]
         self.anchor_y = kwargs["anchor_y"]
         self.color = kwargs["color"]
+        self.circle_color = kwargs["circle_color"]
         self.line_width = kwargs["line_width"]
         self.head_size = kwargs["head_size"]
         self.circle = kwargs["circle"]
@@ -123,7 +125,7 @@ class RotArrow(pygame.sprite.Sprite):
         if self.circle:
             pygame.draw.circle(
                 self.surf,
-                self.color,
+                self.circle_color,
                 pos,
                 self.surf.get_width() / 2,
                 self.line_width
