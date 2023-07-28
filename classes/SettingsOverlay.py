@@ -36,8 +36,8 @@ class SettingsOverlay(RectSubsurface):
             start=40,
             text="Arrows",
             type="int"
-            )
-    
+        )
+
     def _create_buttons(self):
         button_margin = self.on_surf_item_margin
         button_space_margin = self.on_surf_item_margin / 2
@@ -50,7 +50,8 @@ class SettingsOverlay(RectSubsurface):
             button_margin,
             button_width,
             button_height,
-            pressed = self.rs_parent.shape
+            pressed=self.rs_parent.shape,
+            text="S"
         )
 
         circle_toggle_button = Button(
@@ -59,7 +60,8 @@ class SettingsOverlay(RectSubsurface):
             (button_margin + button_height + button_space_margin),
             button_width,
             button_height,
-            pressed = self.rs_parent.arrow_circles
+            pressed=self.rs_parent.arrow_circles,
+            text="C"
         )
 
         return {
@@ -69,7 +71,7 @@ class SettingsOverlay(RectSubsurface):
 
     def _draw_slider(self):
         self.arrow_slider.draw_update()
-    
+
     def draw_update(self):
         if self.show:
             self._draw_slider()

@@ -110,7 +110,10 @@ class ArrowSubsurface(TraceSubsurface):
             self.on_surf_item_margin,
             button_width,
             button_height,
-            pressed = False
+            pressed = False,
+            font_type="Segoe UI Symbol",
+            font_margin=8,
+            text="☰"
         )
     
     def _create_settings_overlay(self):

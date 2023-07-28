@@ -6,14 +6,29 @@ class Button(RectSubsurface):
     def __init__(self, surf: pygame.Surface, left: float, top: float, width: float, height: float, **kwargs):
         super().__init__(surf, left, top, width, height)
         defaultKwargs = {
+            "pressed": False,
             "color": pygame.Color(85, 85, 85),
             "color_pressed": pygame.Color(155, 155, 155),
-            "pressed": False,
+            "text": "",
+            "font_type": "Arial",
+            "font_size": 24,
+            "font_margin": 10
         }
         kwargs = defaultKwargs | kwargs
         self.pressed = kwargs["pressed"]
         self.color = kwargs["color"]
         self.color_pressed = kwargs["color_pressed"]
+        self.text = kwargs["text"]
+        self.font_type = kwargs["font_type"]
+        self.font_size = kwargs["font_size"]
+        self.font_margin = kwargs["font_margin"]
+
+    def get_font(self):
+        return pygame.font.SysFont(self.font_type, self.font_size)
+
+    def get_font_size(self):
+        # Returns the dimensions of the button text.
+        return (self.get_font().size(self.text))
 
     def update_toggle(self):
         if self.pressed:
@@ -26,9 +41,34 @@ class Button(RectSubsurface):
 
     def _draw_pressed(self):
         self.surf.fill(self.color_pressed)
+
+    def _adjust_text_size(self):
+        for size in range(self.font_size, 1, -1):
+            font_dim = self.get_font_size()
+            surf_dim = self.surf.get_size()
+
+            width_match = font_dim[0] <= (surf_dim[0] - 2 * self.font_margin)
+            height_match = font_dim[1] <= (surf_dim[1] - 2 * self.font_margin) 
+
+            if not width_match and not height_match:
+                self.font_size = size
+            else:
+                break
+
+    def _draw_text(self, color):
+        if self.text != "":
+            button_center = (self.surf.get_width() / 2, self.surf.get_height() / 2)
+            text_center = (self.get_font_size()[0] / 2, self.get_font_size()[1] / 2)
+            delta_centers = (button_center[0] - text_center[0], button_center[1] - text_center[1])
+            # Draw text:
+            text = self.get_font().render(f"{self.text}", True, color)
+            self.surf.blit(text, (delta_centers[0], delta_centers[1]))
     
     def draw_update(self):
+        self._adjust_text_size()
         if self.pressed:
             self._draw_pressed()
+            self._draw_text(self.color)
         else:
             self._draw_unpressed()
+            self._draw_text(self.color_pressed)
