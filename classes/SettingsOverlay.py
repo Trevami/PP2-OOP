@@ -98,7 +98,7 @@ class SettingsOverlay(RectSubsurface):
         )
 
         return {
-            "settings_button": settings_toggle_button,
+            "settings_toggle": settings_toggle_button,
             "shape_toggle": shape_toggle_button,
             "circle_toggle": circle_toggle_button
         }
@@ -113,4 +113,4 @@ class SettingsOverlay(RectSubsurface):
             for button in self.buttons.values():
                 button.draw_update()
         else:
-            self.buttons["settings_button"].draw_update()
+            self.buttons["settings_toggle"].draw_update()
