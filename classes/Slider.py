@@ -1,5 +1,6 @@
 import pygame
 import numpy as np
+import os
 from classes.RectSubsurface import RectSubsurface
 
 
@@ -12,8 +13,10 @@ class Slider(RectSubsurface):
             "ticks": 1,
             "start": None,
             "text": "Slider",
-            "font": pygame.font.SysFont("Arial", 24),
-            "font_margin": 10,
+            "font_type": "",
+            "font_size": 24,
+            "font_margin": 3,
+            "font_side_margin": 10,
             "bar_width": 10,
             "bar_color": pygame.Color(85, 85, 85),
             "bar_color_pressed": pygame.Color(155, 155, 155),
@@ -25,8 +28,10 @@ class Slider(RectSubsurface):
         self.bar_y_pos = 0
         self.value = kwargs["start"]
         self.value_text = kwargs["text"]
-        self.font = kwargs["font"]
+        self.font_type = kwargs["font_type"]
+        self.font_size = kwargs["font_size"]
         self.font_margin = kwargs["font_margin"]
+        self.font_side_margin = kwargs["font_side_margin"]
         self.bar_width = kwargs["bar_width"]
         self.bar_color = kwargs["bar_color"]
         self.bar_color_pressed = kwargs["bar_color_pressed"]
@@ -40,28 +45,47 @@ class Slider(RectSubsurface):
     def set_new_values(self, min_value: float, max_value: float, num_value_ticks: int):
         self.pos_value_lookup = self._get_value_pos_lookup(
             self, min_value, max_value, num_value_ticks)
-        
+
     def set_draw_palette(self, palette: dict):
         self.bar_color = palette["bar_color"]
         self.bar_color_pressed = palette["bar_color_pressed"]
         self.background_color = palette["background_color"]
 
-    def get_font_width(self, value: float):
-        # Returns the width of the slider text.
-        return self.font.size(f"{self.value_text}: {value}")[0]
-    
+    def get_font(self):
+        if self.font_type != "":
+            return pygame.font.SysFont(self.font_type, self.font_size)
+        else:
+            font_name = "FantasqueSansMono-Regular.ttf"
+            font_folder_name = "FantasqueSansMono"
+            font_path = os.path.join(
+                os.path.abspath(os.getcwd()),
+                "resources",
+                "fonts",
+                font_folder_name,
+                font_name
+            )
+            return pygame.font.Font(font_path, self.font_size)
+
+    def get_font_size(self, value: float):
+        # Returns the dimensions of the button text.
+        return self.get_font().size(f"{self.value_text}: {value}")
+
+    def get_font_height(self):
+        # Returns the height of the slider text.
+        return self.get_font().get_height()
+
     def _get_value_pos_lookup(self, min_value: float, max_value: float, num_value_ticks: int):
         self._input_check(min_value, max_value, num_value_ticks)
 
         # Gets the max width of the font:
         # Differences in type font width due to decimal places of float
         if self.type == "int":
-            font_width = self.get_font_width(int(max_value))
+            font_width = self.get_font_size(int(max_value))[0]
         else:
-            font_width = self.get_font_width(float(max_value))
+            font_width = self.get_font_size(float(max_value))[0]
 
         # Generates a lookup data table with x_pos and corresponding value data.
-        x_min = self.bar_x_pos + font_width + self.font_margin
+        x_min = self.bar_x_pos + font_width + self.font_side_margin
         x_max = self.surf.get_width() - self.bar_width
 
         # Generates a list with value data.
@@ -75,13 +99,13 @@ class Slider(RectSubsurface):
         x_pos_value_ratio = (x_max - x_min) / value_delta
         value_ticks_x_pos = [(value - min_value) *
                              x_pos_value_ratio + x_min for value in values]
-        
+
         # Generates the output lookup table with tick x_pos : tick value entries.
         if self.type == "int":
             return {x_pos: int(value) for x_pos, value in zip(value_ticks_x_pos, values)}
         else:
             return {x_pos: float(value) for x_pos, value in zip(value_ticks_x_pos, values)}
-    
+
     def _init_slider_bar_pos(self):
         # Sets the start position to the bar to specified position.
         # Linear ratio calculations are used for x_pos determination.
@@ -117,6 +141,16 @@ class Slider(RectSubsurface):
         if self.type != "int" and self.type != "float":
             raise ValueError(
                 f"Invalid type argument {self.type}, must be int or float")
+
+    def _adjust_text_size(self):
+        for size in range(self.font_size, 1, -1):
+            font_height = self.get_font_height()
+            surf_dim = self.surf.get_size()
+
+            if not font_height <= (surf_dim[1] - 2 * self.font_margin):
+                self.font_size = size
+            else:
+                break
 
     def update_x_pos(self, x_pos: float):
         # Sets the input x_pos to the center of the bar.
@@ -156,17 +190,18 @@ class Slider(RectSubsurface):
             bar_color,
             slider_bar
         )
-    
+
     def _draw_text(self):
         # Draw text:
-        text = self.font.render(
+        text = self.get_font().render(
             f"{self.value_text}: {self.value}", True, self.bar_color_pressed)
         # Draw text:
-        self.surf.blit(text, (self.font_margin, 0))
-    
+        self.surf.blit(text, (self.font_side_margin, self.font_margin))
+
     def draw_update(self):
         # Fills background with color.
         self.surf.fill(self.background_color)
+        self._adjust_text_size()
 
         self._draw_bar()
         self._draw_text()

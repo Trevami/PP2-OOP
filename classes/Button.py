@@ -1,4 +1,5 @@
 import pygame
+import os
 from classes.RectSubsurface import RectSubsurface
 
 
@@ -10,7 +11,7 @@ class Button(RectSubsurface):
             "color": pygame.Color(85, 85, 85),
             "color_pressed": pygame.Color(155, 155, 155),
             "text": "",
-            "font_type": "Arial",
+            "font_type": "",
             "font_size": 24,
             "font_margin": 10
         }
@@ -24,11 +25,36 @@ class Button(RectSubsurface):
         self.font_margin = kwargs["font_margin"]
 
     def get_font(self):
-        return pygame.font.SysFont(self.font_type, self.font_size)
+        if self.font_type != "":
+            return pygame.font.SysFont(self.font_type, self.font_size)
+        else:
+            font_name = "FantasqueSansMono-Regular.ttf"
+            font_folder_name = "FantasqueSansMono"
+            font_path = os.path.join(
+                os.path.abspath(os.getcwd()),
+                "resources",
+                "fonts",
+                font_folder_name,
+                font_name
+            )
+            return pygame.font.Font(font_path, self.font_size)
 
     def get_font_size(self):
         # Returns the dimensions of the button text.
-        return (self.get_font().size(self.text))
+        return self.get_font().size(self.text)
+    
+    def _adjust_text_size(self):
+        for size in range(self.font_size, 1, -1):
+            font_size = self.get_font_size()
+            surf_dim = self.surf.get_size()
+
+            width_match = font_size[0] <= (surf_dim[0] - 2 * self.font_margin)
+            height_match = font_size[1] <= (surf_dim[1] - 2 * self.font_margin) 
+
+            if not width_match and not height_match:
+                self.font_size = size
+            else:
+                break
 
     def update_toggle(self):
         if self.pressed:
@@ -41,19 +67,6 @@ class Button(RectSubsurface):
 
     def _draw_pressed(self):
         self.surf.fill(self.color_pressed)
-
-    def _adjust_text_size(self):
-        for size in range(self.font_size, 1, -1):
-            font_dim = self.get_font_size()
-            surf_dim = self.surf.get_size()
-
-            width_match = font_dim[0] <= (surf_dim[0] - 2 * self.font_margin)
-            height_match = font_dim[1] <= (surf_dim[1] - 2 * self.font_margin) 
-
-            if not width_match and not height_match:
-                self.font_size = size
-            else:
-                break
 
     def _draw_text(self, color):
         if self.text != "":
