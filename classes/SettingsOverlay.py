@@ -65,6 +65,18 @@ class SettingsOverlay(RectSubsurface):
         button_width = 35
         button_height = button_width
 
+        settings_toggle_button = Button(
+            self.surf,
+            self.on_surf_item_margin,
+            self.on_surf_item_margin,
+            button_width,
+            button_height,
+            pressed = self.show,
+            font_type="Segoe UI Symbol",
+            font_margin=8,
+            text="☰"
+        )
+
         shape_toggle_button = Button(
             self.surf,
             (self.surf.get_width() - (button_margin + button_width)),
@@ -86,6 +98,7 @@ class SettingsOverlay(RectSubsurface):
         )
 
         return {
+            "settings_button": settings_toggle_button,
             "shape_toggle": shape_toggle_button,
             "circle_toggle": circle_toggle_button
         }
@@ -99,3 +112,5 @@ class SettingsOverlay(RectSubsurface):
             self._draw_sliders()
             for button in self.buttons.values():
                 button.draw_update()
+        else:
+            self.buttons["settings_button"].draw_update()

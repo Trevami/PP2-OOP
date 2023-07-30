@@ -35,7 +35,7 @@ class Logic:
                     self.objs["draw_surf"].clear_trace()
                     self.objs["draw_mouse_pressed"] = True
 
-                settings_toggle_button = self.objs["arrow_surf"].setting_button
+                settings_toggle_button = self.objs["arrow_surf"].settigs_overlay.buttons["settings_button"]
                 if settings_toggle_button.get_abs_bbox().collidepoint(mouse_pos):
                     settings_toggle_button.update_toggle()
                     self.objs["arrow_surf"].settigs_overlay.show = settings_toggle_button.pressed

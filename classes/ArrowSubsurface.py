@@ -21,17 +21,14 @@ class ArrowSubsurface(TraceSubsurface):
             "arrow1_color": pygame.Color(40, 120, 40),
             "cross_color": pygame.Color(80, 80, 80),
             "shape_color": pygame.Color(0, 80, 200),
-            "on_surf_item_margin": 20
         }
         kwargs = defaultKwargs | kwargs
-        self.on_surf_item_margin = kwargs["on_surf_item_margin"]
         self._arrow_group = pygame.sprite.Group()
         self.shape_points = []
         self._shape_len = 0
         self.shape_interpol_pts = kwargs["shape_interpol_pts"]
         self.shape = kwargs["shape"]
         self.arrow_circles = kwargs["arrow_circles"]
-        self.setting_button = self._create_settings_button()
         self.settigs_overlay = self._create_settings_overlay()
         self.trace_length = kwargs["trace_length"]
         self.surf_color = kwargs["surf_color"]
@@ -100,21 +97,6 @@ class ArrowSubsurface(TraceSubsurface):
                 self._arrow_group.add(arrow)
 
             self._update_first_arrow()
-
-    def _create_settings_button(self):
-        button_width = 35
-        button_height = button_width
-        return Button(
-            self.surf,
-            self.on_surf_item_margin,
-            self.on_surf_item_margin,
-            button_width,
-            button_height,
-            pressed = False,
-            font_type="Segoe UI Symbol",
-            font_margin=8,
-            text="☰"
-        )
     
     def _create_settings_overlay(self):
         return SettingsOverlay(
@@ -123,13 +105,12 @@ class ArrowSubsurface(TraceSubsurface):
             0,
             self.surf.get_width(),
             self.surf.get_height(),
-            show=self.setting_button.pressed
+            show=False
         )
     
     def clear_arrows(self):
         # Deletes all arrows.
         self._arrow_group.empty()
-        self.arrow_params = []
 
     def update_arrows(self):
         # Updates the arrows and the anchors of all arrows to the vector end of the previous arrow. 
@@ -200,9 +181,6 @@ class ArrowSubsurface(TraceSubsurface):
                 width=int(self.trace_width / 2)
             )
 
-    def _draw_setting_button(self):
-        self.setting_button.draw_update()
-
     def _draw_settigs_overlay(self):
         self.settigs_overlay.draw_update()
 
@@ -215,4 +193,3 @@ class ArrowSubsurface(TraceSubsurface):
         self._draw_arrows()
         self._draw_trace()
         self._draw_settigs_overlay()
-        self._draw_setting_button()
