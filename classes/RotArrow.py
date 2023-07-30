@@ -10,7 +10,7 @@ class RotArrow(pygame.sprite.Sprite):
             "anchor_x": 0,
             "anchor_y": 0,
             "color": pygame.Color(80, 80, 80),
-            "circle_color": pygame.Color(60, 60, 60),
+            "circle_color": pygame.Color(80, 80, 80),
             "line_width": 1,
             "head_size": 10,
             "circle": True
