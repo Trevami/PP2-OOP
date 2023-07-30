@@ -18,13 +18,14 @@ class Logic:
             "arrow_surf": ArrowSubsurface(self.screen_surf, screen_width / 2, 0, screen_width / 2, screen_height),
             "draw_surf": DrawSubsurface(self.screen_surf, 0, 0, screen_width / 2, screen_height),
             "draw_mouse_pressed": False,
-            "slider_mouse_pressed": False
+            "slider1_mouse_pressed": False,
+            "slider2_mouse_pressed": False
         })
 
     def on_event_logic(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                self.app.stopApp()
+                self.app.stop_App()
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
@@ -32,7 +33,6 @@ class Logic:
 
                 if self.objs["draw_surf"].get_abs_bbox().collidepoint(mouse_pos):
                     self.objs["draw_surf"].clear_trace()
-                    self.objs["draw_surf"].clear_surf = True
                     self.objs["draw_mouse_pressed"] = True
 
                 settings_toggle_button = self.objs["arrow_surf"].setting_button
@@ -41,10 +41,15 @@ class Logic:
                     self.objs["arrow_surf"].settigs_overlay.show = settings_toggle_button.pressed
 
                 if self.objs["arrow_surf"].settigs_overlay.show:
+                    speed_slider = self.objs["arrow_surf"].settigs_overlay.speed_slider
+                    if speed_slider.get_abs_bbox().collidepoint(mouse_pos):
+                        speed_slider.pressed = True
+                        self.objs["slider1_mouse_pressed"] = True
+                    
                     arrow_slider = self.objs["arrow_surf"].settigs_overlay.arrow_slider
                     if arrow_slider.get_abs_bbox().collidepoint(mouse_pos):
                         arrow_slider.pressed = True
-                        self.objs["slider_mouse_pressed"] = True
+                        self.objs["slider2_mouse_pressed"] = True
 
                     shape_toggle_button = self.objs["arrow_surf"].settigs_overlay.buttons["shape_toggle"]
                     if shape_toggle_button.get_abs_bbox().collidepoint(mouse_pos):
@@ -69,16 +74,20 @@ class Logic:
 
                     # Refreshes arrow surface
                     self.objs["arrow_surf"].clear_trace()
-                    self.objs["arrow_surf"].clear_surf = True
                     self.objs["draw_mouse_pressed"] = False
 
-                if self.objs["slider_mouse_pressed"]:
+                if self.objs["slider1_mouse_pressed"]:
+                    self.objs["arrow_surf"].update_arrow_speed()
+                    self.objs["arrow_surf"].clear_trace()
+                    self.objs["arrow_surf"].settigs_overlay.speed_slider.pressed = False
+                    self.objs["slider1_mouse_pressed"] = False
+
+                if self.objs["slider2_mouse_pressed"]:
                     if self.objs["arrow_surf"].shape_points:
                         self.objs["arrow_surf"].create_arrows()
                         self.objs["arrow_surf"].clear_trace()
-                        self.objs["arrow_surf"].clear_surf = True
                     self.objs["arrow_surf"].settigs_overlay.arrow_slider.pressed = False
-                    self.objs["slider_mouse_pressed"] = False
+                    self.objs["slider2_mouse_pressed"] = False
 
         state = pygame.mouse.get_pressed()
         if state[0]:
@@ -86,6 +95,9 @@ class Logic:
 
             if self.objs["draw_surf"].get_abs_bbox().collidepoint(mouse_pos) and self.objs["draw_mouse_pressed"]:
                 self.objs["draw_surf"].append_trace_pt(mouse_pos)
+
+            if self.objs["arrow_surf"].settigs_overlay.speed_slider.get_abs_bbox().collidepoint(mouse_pos):
+                self.objs["arrow_surf"].settigs_overlay.speed_slider.update_x_pos(mouse_pos[0])
 
             if self.objs["arrow_surf"].settigs_overlay.arrow_slider.get_abs_bbox().collidepoint(mouse_pos):
                 self.objs["arrow_surf"].settigs_overlay.arrow_slider.update_x_pos(mouse_pos[0])

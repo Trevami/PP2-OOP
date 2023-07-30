@@ -14,7 +14,9 @@ class SettingsOverlay(RectSubsurface):
         self.show = kwargs["show"]
         self.rs_parent = rs_parent
         self.on_surf_item_margin = kwargs["on_surf_item_margin"]
+        self._slider_height = 30
         self.arrow_slider = self._create_arrow_slider()
+        self.speed_slider = self._create_speed_slider()
         self.buttons = self._create_buttons()
 
     def _create_arrow_slider(self):
@@ -22,19 +24,38 @@ class SettingsOverlay(RectSubsurface):
         slider_margin = self.on_surf_item_margin
         # Sets width and height of the Slider.
         slider_width = self.surf.get_width() - (2 * slider_margin)
-        slider_height = 30
         # Creates a slider.
         return Slider(
             self.surf,
             slider_margin,
-            (self.surf.get_height() - (slider_margin + slider_height)),
+            (self.surf.get_height() - (slider_margin + self._slider_height)),
             slider_width,
-            slider_height,
-            min=10,
+            self._slider_height,
+            min=2,
             max=200,
-            ticks=19,
+            ticks=198,
             start=40,
             text="Arrows",
+            type="int"
+        )
+    
+    def _create_speed_slider(self):
+        # Sets the margin relative to the ArrowSurface
+        slider_margin = self.on_surf_item_margin
+        # Sets width and height of the Slider.
+        slider_width = self.surf.get_width() - (2 * slider_margin)
+        # Creates a slider.
+        return Slider(
+            self.surf,
+            slider_margin,
+            (self.surf.get_height() - (slider_margin + slider_margin / 2 + self._slider_height * 2)),
+            slider_width,
+            self._slider_height,
+            min=1,
+            max=100,
+            ticks=20,
+            start=50,
+            text="Speed ",
             type="int"
         )
 
@@ -69,11 +90,12 @@ class SettingsOverlay(RectSubsurface):
             "circle_toggle": circle_toggle_button
         }
 
-    def _draw_slider(self):
+    def _draw_sliders(self):
         self.arrow_slider.draw_update()
+        self.speed_slider.draw_update()
 
     def draw_update(self):
         if self.show:
-            self._draw_slider()
+            self._draw_sliders()
             for button in self.buttons.values():
                 button.draw_update()

@@ -5,7 +5,7 @@ from classes.TraceSubsurface import TraceSubsurface
 from classes.RotArrow import RotArrow
 from classes.Button import Button
 from classes.SettingsOverlay import SettingsOverlay
-from functions.vectors_and_interpolation import get_vec_screen_pos, lin_interpolate_shape
+from functions.vectors_and_interpolation import *
 
 
 class ArrowSubsurface(TraceSubsurface):
@@ -27,25 +27,19 @@ class ArrowSubsurface(TraceSubsurface):
         self.on_surf_item_margin = kwargs["on_surf_item_margin"]
         self._arrow_group = pygame.sprite.Group()
         self.shape_points = []
+        self._shape_len = 0
         self.shape_interpol_pts = kwargs["shape_interpol_pts"]
         self.shape = kwargs["shape"]
         self.arrow_circles = kwargs["arrow_circles"]
         self.setting_button = self._create_settings_button()
         self.settigs_overlay = self._create_settings_overlay()
-        self.time_factor = self.set_time_factor() # Should be changed
         self.trace_length = kwargs["trace_length"]
         self.surf_color = kwargs["surf_color"]
         self.arrow_color = kwargs["arrow_color"]
         self.arrow1_color = kwargs["arrow1_color"]
         self.cross_color = kwargs["cross_color"]
         self.shape_color = kwargs["shape_color"]
-        self.set_time_factor()
-
-    def set_time_factor(self, speed=3):
-        # Will be changed in future.
-        # Sets time delay.
-        # Higher speed values increase the speed of the arrows.
-        self.time_factor = 1/30 * speed
+        self.arrow_speed = int(self.settigs_overlay.speed_slider.value)
 
     def set_shape(self, shape):
         # Interpolates shape if more than 3 points.
@@ -53,6 +47,7 @@ class ArrowSubsurface(TraceSubsurface):
             self.shape_points = lin_interpolate_shape(shape, self.shape_interpol_pts)
         else:
             self.shape_points = shape
+        self._shape_len = get_shape_length(self.shape_points)
 
     def set_arrow_palette(self, palette: dict):
         self.arrow_color = palette["arrow_color"]
@@ -62,6 +57,11 @@ class ArrowSubsurface(TraceSubsurface):
         self.arrow_circles = state
         for arrow in list(self._arrow_group)[1:]:
             arrow.circle = self.arrow_circles
+
+    def _get_time_factor(self):
+        # Sets time delay.
+        # Higher speed values increase the speed of the arrows.
+        return self.arrow_speed * 5 / self._shape_len
 
     def create_arrows(self):
         if len(self.shape_points) >= 3:
@@ -73,7 +73,7 @@ class ArrowSubsurface(TraceSubsurface):
             # The var: exp_mult determines the exp multipliers of Euler's equation.
             exp_mult = 0 # Start point for series generation.
             for i in range(int(self.settigs_overlay.arrow_slider.value)):
-                # Generates a series of exp multipliers: 0, -1, 1, -2, 2 ...
+                # Generates a series of exp multipliers: 0, 1, -1, 2, -2 ...
                 exp_mult += (-1)**i * -i
                 constant = 0
                 num_points = len(self.shape_points)
@@ -94,13 +94,13 @@ class ArrowSubsurface(TraceSubsurface):
                     constant,
                     exp_mult,
                     color=self.arrow_color,
-                    time_factor=self.time_factor,
+                    time_factor=self._get_time_factor(),
                     circle=self.arrow_circles
                     )
                 self._arrow_group.add(arrow)
 
             self._update_first_arrow()
-    
+
     def _create_settings_button(self):
         button_width = 35
         button_height = button_width
@@ -129,6 +129,7 @@ class ArrowSubsurface(TraceSubsurface):
     def clear_arrows(self):
         # Deletes all arrows.
         self._arrow_group.empty()
+        self.arrow_params = []
 
     def update_arrows(self):
         # Updates the arrows and the anchors of all arrows to the vector end of the previous arrow. 
@@ -141,9 +142,14 @@ class ArrowSubsurface(TraceSubsurface):
             )
 
         # Arrow update:
-        for arrow in self._arrow_group:
-            arrow.time_factor = self.time_factor
-            arrow.update()
+        if len(self._arrow_group):
+            if self._arrow_group.sprites()[0].time_factor != self._get_time_factor():
+                for arrow in self._arrow_group:
+                    arrow.time_factor = self._get_time_factor()
+                    arrow.update()
+            else:
+                for arrow in self._arrow_group:
+                    arrow.update()
 
     def _update_first_arrow(self):
         # Sets the anchor position to center of ArrowSurface for first arrow.
@@ -154,6 +160,9 @@ class ArrowSubsurface(TraceSubsurface):
         # Changes color and circle of first arrow.
         self._arrow_group.sprites()[0].color = self.arrow1_color
         self._arrow_group.sprites()[0].circle = False
+
+    def update_arrow_speed(self):
+        self.arrow_speed = int(self.settigs_overlay.speed_slider.value)
 
     def _draw_arrows(self):
         # Draws arrows.
@@ -176,6 +185,9 @@ class ArrowSubsurface(TraceSubsurface):
                     self.trace[1:],
                     width=self.trace_width
                 )
+
+                # speed = get_dist_points(self.trace[-2], self.trace[-1])
+                # print(speed)
 
     def _draw_shape(self):
         # Draws shape
