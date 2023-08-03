@@ -10,13 +10,13 @@ class RotArrow(pygame.sprite.Sprite):
             "anchor_x": 0,
             "anchor_y": 0,
             "color": pygame.Color(80, 80, 80),
-            "circle_color": pygame.Color(80, 80, 80),
+            "circle_color": pygame.Color(80, 80, 80, 128),
             "line_width": 1,
             "head_size": 10,
             "circle": True
         }
         kwargs = defaultKwargs | kwargs
-        self.surf = pygame.Surface((abs(constant * 2), abs(constant * 2)))
+        self.surf = pygame.Surface((abs(constant * 2), abs(constant * 2)), pygame.SRCALPHA)
         self.vector = get_vector(constant, angle)
         self.constant = constant  # constant c_i
         self.angle = angle
@@ -29,6 +29,7 @@ class RotArrow(pygame.sprite.Sprite):
         self.head_size = kwargs["head_size"]
         self.circle = kwargs["circle"]
         self.update()
+        # self.surf.set_alpha(128)
 
     def set_anchor(self, pos: tuple):
         """Sets the center blit position (anchor position) of the RotArrow Sprite.
