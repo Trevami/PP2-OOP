@@ -1,6 +1,18 @@
+import pygame
+import os
 from classes.RectSubsurface import RectSubsurface
 from classes.Slider import Slider
 from classes.Button import Button
+
+
+def get_image(image_name):
+    path = os.path.join(
+        os.path.abspath(os.getcwd()),
+        "resources",
+        "images",
+        image_name
+    )
+    return pygame.image.load(path).convert_alpha()
 
 
 class SettingsOverlay(RectSubsurface):
@@ -38,7 +50,7 @@ class SettingsOverlay(RectSubsurface):
             text="Arrows",
             type="int"
         )
-    
+
     def _create_speed_slider(self):
         # Sets the margin relative to the ArrowSurface
         slider_margin = self.on_surf_item_margin
@@ -48,7 +60,8 @@ class SettingsOverlay(RectSubsurface):
         return Slider(
             self.surf,
             slider_margin,
-            (self.surf.get_height() - (slider_margin + slider_margin / 2 + self._slider_height * 2)),
+            (self.surf.get_height() - (slider_margin +
+             slider_margin / 2 + self._slider_height * 2)),
             slider_width,
             self._slider_height,
             min=1,
@@ -71,10 +84,11 @@ class SettingsOverlay(RectSubsurface):
             self.on_surf_item_margin,
             button_width,
             button_height,
-            pressed = self.show,
-            font_type="Segoe UI Symbol",
-            font_margin=8,
-            text="☰"
+            pressed=self.show,
+            content_margin=6,
+            # font_type="Segoe UI Symbol",
+            # text="☰",
+            image=get_image("burger_menu.png")
         )
 
         shape_toggle_button = Button(
@@ -84,7 +98,9 @@ class SettingsOverlay(RectSubsurface):
             button_width,
             button_height,
             pressed=self.rs_parent.shape,
-            text="S"
+            content_margin=3,
+            # text="S",
+            image=get_image("shape.png")
         )
 
         circle_toggle_button = Button(
@@ -94,7 +110,9 @@ class SettingsOverlay(RectSubsurface):
             button_width,
             button_height,
             pressed=self.rs_parent.arrow_circles,
-            text="C"
+            content_margin=3,
+            # text="C",
+            image=get_image("arrow_circle.png")
         )
 
         return {
