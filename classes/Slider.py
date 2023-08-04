@@ -20,7 +20,7 @@ class Slider(RectSubsurface):
             "bar_width": 10,
             "bar_color": pygame.Color(85, 85, 85),
             "bar_color_pressed": pygame.Color(155, 155, 155),
-            "background_color": pygame.Color(15, 15, 15),
+            "background_color": pygame.Color(0, 0, 0, 128),
             "type": "int"
         }
         kwargs = defaultKwargs | kwargs
@@ -198,9 +198,14 @@ class Slider(RectSubsurface):
         # Draw text:
         self.surf.blit(text, (self.font_side_margin, self.font_margin))
 
+    def draw_background(self):
+        blit_surf = pygame.Surface(self.surf.get_size(), pygame.SRCALPHA)
+        blit_surf.fill(self.background_color)
+        self.surf.blit(blit_surf, (0, 0))
+
     def draw_update(self):
-        # Fills background with color.
-        self.surf.fill(self.background_color)
+        self.draw_background()
+        #self.surf.fill(self.background_color)
         self._adjust_text_size()
 
         self._draw_bar()
