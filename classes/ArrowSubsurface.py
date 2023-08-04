@@ -6,6 +6,7 @@ from classes.RotArrow import RotArrow
 from classes.Button import Button
 from classes.SettingsOverlay import SettingsOverlay
 from functions.vectors_and_interpolation import *
+from functions.setting_elements.ArrowSetElements import create_arrow_setting_objs
 
 
 class ArrowSubsurface(TraceSubsurface):
@@ -36,7 +37,7 @@ class ArrowSubsurface(TraceSubsurface):
         self.arrow1_color = kwargs["arrow1_color"]
         self.cross_color = kwargs["cross_color"]
         self.shape_color = kwargs["shape_color"]
-        self.arrow_speed = int(self.settigs_overlay.speed_slider.value)
+        self.arrow_speed = int(self.settigs_overlay.objs["speed_slider"].value)
 
     def set_shape(self, shape):
         # Interpolates shape if more than 3 points.
@@ -69,7 +70,7 @@ class ArrowSubsurface(TraceSubsurface):
             # The var: constant sets the init size (real part) and the angle (imag part) of arrow.
             # The var: exp_mult determines the exp multipliers of Euler's equation.
             exp_mult = 0 # Start point for series generation.
-            for i in range(int(self.settigs_overlay.arrow_slider.value)):
+            for i in range(int(self.settigs_overlay.objs["arrow_slider"].value)):
                 # Generates a series of exp multipliers: 0, 1, -1, 2, -2 ...
                 exp_mult += (-1)**i * -i
                 constant = 0
@@ -99,14 +100,16 @@ class ArrowSubsurface(TraceSubsurface):
             self._update_first_arrow()
     
     def _create_settings_overlay(self):
-        return SettingsOverlay(
+        settings_overlay = SettingsOverlay(
             self,
             0,
             0,
             self.surf.get_width(),
             self.surf.get_height(),
-            show=False
+            show=False,
         )
+        create_arrow_setting_objs(settings_overlay)
+        return settings_overlay
     
     def clear_arrows(self):
         # Deletes all arrows.
@@ -143,7 +146,7 @@ class ArrowSubsurface(TraceSubsurface):
         self._arrow_group.sprites()[0].circle = False
 
     def update_arrow_speed(self):
-        self.arrow_speed = int(self.settigs_overlay.speed_slider.value)
+        self.arrow_speed = int(self.settigs_overlay.objs["speed_slider"].value)
 
     def _draw_arrows(self):
         # Draws arrows.
@@ -185,7 +188,6 @@ class ArrowSubsurface(TraceSubsurface):
         self.settigs_overlay.draw_update()
 
     def draw_update(self):
-        self.clear_surface()
         self.surf.fill(self.surf_color)
         
         self.draw_cross()
