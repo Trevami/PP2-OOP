@@ -1,6 +1,7 @@
 import pygame
-from functions.vectors_and_interpolation import get_shape_length, lin_interpolate
 from classes.TraceSubsurface import TraceSubsurface
+from classes.SettingsOverlay import SettingsOverlay
+from functions.vectors_and_interpolation import get_shape_length, lin_interpolate
 
 
 class DrawSubsurface(TraceSubsurface):
@@ -11,6 +12,7 @@ class DrawSubsurface(TraceSubsurface):
         }
         kwargs = defaultKwargs | kwargs
         self.surf_color = kwargs["surf_color"]
+        self.settigs_overlay = self._create_settings_overlay()
 
     def close_trace(self):
         # Linear interpolation between last and first point of trace.
@@ -27,3 +29,24 @@ class DrawSubsurface(TraceSubsurface):
             # Linear interpolation:
             self.trace.extend(lin_interpolate(pt2, pt1, num_points))
             self.trace.append(pt1) # Closes gap between points.
+
+    def _create_settings_overlay(self):
+        settings_overlay = SettingsOverlay(
+            self,
+            0,
+            0,
+            self.surf.get_width(),
+            self.surf.get_height(),
+            show=False,
+        )
+        return settings_overlay
+    
+    def _draw_settigs_overlay(self):
+        self.settigs_overlay.draw_update()
+    
+    def draw_update(self):
+        self.surf.fill(self.surf_color)
+        self.draw_cross()
+        if len(self.trace) >= 2:
+            self.draw_trace()
+        self._draw_settigs_overlay()
