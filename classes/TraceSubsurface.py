@@ -44,9 +44,6 @@ class TraceSubsurface(RectSubsurface):
         self.trace_color = palette["trace_color"]
         self.cross_color = palette["cross_color"]
 
-    def clear_surface(self):
-        self.surf.fill(self.surf_color)
-
     def draw_cross(self):
         if self.cross:
             center = (self.surf.get_width() / 2, self.surf.get_height() / 2)
@@ -65,9 +62,3 @@ class TraceSubsurface(RectSubsurface):
                     pt2,
                     self.cross_line_width
                 )
-
-    def draw_update(self):
-        self.clear_surface()
-        self.draw_cross()
-        if len(self.trace) >= 2:
-            self.draw_trace()
