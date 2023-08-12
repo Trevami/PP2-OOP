@@ -1,0 +1,19 @@
+- Heart Symbol (heart.svg):
+- Is licensed by CC BY 4.0
+https://www.onlinewebfonts.com/icon/403192
+
+- GClef Symbol (GClef.svg):
+- Public domain
+-> Changed to be a continuous path
+https://commons.wikimedia.org/wiki/File:GClef.svg
+
+- Lambda Symbol (lambda.svg):
+- MLP License (HashiCorp)
+https://www.svgrepo.com/svg/448300/aws-lambda
+
+- Sigma Symbol (sigma.svg):
+- Public domain
+https://commons.wikimedia.org/wiki/File:Greek_uc_sigma.svg
+
+- Signature Symbol (signature.svg):
+- Made by me
