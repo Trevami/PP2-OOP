@@ -47,6 +47,7 @@ def _create_speed_slider(settings_overlay: SettingsOverlay):
         text="Speed ",
         type="int"
     )
+    settings_overlay.rs_parent.arrow_speed = speed_slider.value
     settings_overlay.objs.update({"speed_slider": speed_slider})
 
 def _create_buttons(settings_overlay: SettingsOverlay):
@@ -55,47 +56,50 @@ def _create_buttons(settings_overlay: SettingsOverlay):
     button_width = 35
     button_height = button_width
 
-    settings_toggle_button = Button(
-        settings_overlay.surf,
-        settings_overlay.on_surf_item_margin,
-        settings_overlay.on_surf_item_margin,
-        button_width,
-        button_height,
-        pressed=settings_overlay.show,
-        content_margin=6,
-        # font_type="Segoe UI Symbol",
-        # text="☰",
-        image=get_image("burger_menu.png")
-    )
-
     shape_toggle_button = Button(
         settings_overlay.surf,
-        (settings_overlay.surf.get_width() - (button_margin + button_width)),
         button_margin,
+        (button_margin + button_height + button_space_margin),
         button_width,
         button_height,
-        pressed=settings_overlay.rs_parent.shape,
+        pressed=False,
         content_margin=3,
         # text="S",
         image=get_image("shape.png")
     )
+    settings_overlay.rs_parent.shape = shape_toggle_button.pressed
+
+    shape_points_button = Button(
+        settings_overlay.surf,
+        button_margin,
+        (button_margin + 2 * (button_height + button_space_margin)),
+        button_width,
+        button_height,
+        pressed=False,
+        content_margin=3,
+        font_type="Segoe UI Symbol",
+        text="∙",
+        show=True
+    )
+    settings_overlay.rs_parent.show_shape_points = shape_points_button.pressed
 
     circle_toggle_button = Button(
         settings_overlay.surf,
-        (settings_overlay.surf.get_width() - (button_margin + button_width)),
-        (button_margin + button_height + button_space_margin),
+        button_margin,
+        (button_margin + 3 * (button_height + button_space_margin)),
         button_width,
         button_height,
-        pressed=settings_overlay.rs_parent.arrow_circles,
+        pressed=True,
         content_margin=3,
         # text="C",
         image=get_image("arrow_circle.png")
     )
+    settings_overlay.rs_parent.set_arrow_circles(circle_toggle_button.pressed)
 
     settings_overlay.objs.update({
-        "settings_toggle": settings_toggle_button,
         "shape_toggle": shape_toggle_button,
-        "circle_toggle": circle_toggle_button
+        "circle_toggle": circle_toggle_button,
+        "shape_points": shape_points_button
     })
 
 def create_arrow_setting_objs(settings_overlay: SettingsOverlay):
