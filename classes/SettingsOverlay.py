@@ -39,6 +39,7 @@ class SettingsOverlay(RectSubsurface):
     def draw_update(self):
         if self.show:
             for obj in self.objs.values():
-                obj.draw_update()
+                if callable(getattr(obj, "draw_update", None)):
+                    obj.draw_update()
         else:
             self.objs["settings_toggle"].draw_update()
