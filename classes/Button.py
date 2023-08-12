@@ -9,31 +9,44 @@ class Button(RectSubsurface):
         defaultKwargs = {
             "pressed": False,
             "color": pygame.Color(85, 85, 85),
-            "color_pressed": pygame.Color(155, 155, 155),
+            "color_symbol": pygame.Color(155, 155, 155),
+            "color_pressed": pygame.Color(200, 200, 200),
+            "color_pressed_symbol": pygame.Color(85, 85, 85),
+            "color_hover": pygame.Color(155, 155, 155),
+            "color_hover_symbol": pygame.Color(85, 85, 85),
             "image": None,
             "text": "",
             "font_type": "",
             "font_size": 24,
-            "content_margin": 10
+            "content_margin": 10,
+            "show": True
         }
         kwargs = defaultKwargs | kwargs
         self.pressed = kwargs["pressed"]
+        self.mouse_active = False
         self.color = kwargs["color"]
+        self.color_symbol = kwargs["color_symbol"]
         self.color_pressed = kwargs["color_pressed"]
+        self.color_pressed_symbol = kwargs["color_pressed_symbol"]
+        self.color_hover = kwargs["color_hover"]
+        self.color_hover_symbol = kwargs["color_hover_symbol"]
         self.image = kwargs["image"]
+        self._image_color = None
         self.text = kwargs["text"]
         self.font_type = kwargs["font_type"]
         self.font_size = kwargs["font_size"]
         self.content_margin = kwargs["content_margin"]
+        self.show = kwargs["show"]
         self._adjust_image_size()
-        self._update_image_color()
         self._adjust_text_size()
 
     def _set_image_color(self, color):
-        for x_pix in range(self.image.get_width()):
-            for y_pix in range(self.image.get_height()):
-                color.a = self.image.get_at((x_pix, y_pix)).a  # Preserve the alpha value.
-                self.image.set_at((x_pix, y_pix), color)  # Set the color of the pixel.
+        if color != self._image_color:
+            self._image_color = color
+            for x_pix in range(self.image.get_width()):
+                for y_pix in range(self.image.get_height()):
+                    color.a = self.image.get_at((x_pix, y_pix)).a  # Preserve the alpha value.
+                    self.image.set_at((x_pix, y_pix), color)  # Set the color of the pixel.
 
     def get_font(self):
         if self.font_type != "":
@@ -80,34 +93,25 @@ class Button(RectSubsurface):
                 surf_size = self.surf.get_size()
 
                 width_match = font_size[0] <= (surf_size[0] - 2 * self.content_margin)
-                height_match = font_size[1] <= (surf_size[1] - 2 * self.content_margin) 
+                height_match = font_size[1] <= (surf_size[1] - 2 * self.content_margin)
 
-                if not width_match and not height_match:
-                    self.font_size = size
-                else:
+                self.font_size = size
+                if width_match and height_match:
                     break
-
-    def _update_image_color(self):
-        if self.image:
-            if self.pressed:
-                self._set_image_color(self.color)
-            else:
-                self._set_image_color(self.color_pressed)
 
     def update_toggle(self):
         if self.pressed:
             self.pressed = False
-            self._update_image_color()
         else:
             self.pressed = True
-            self._update_image_color()
 
-    def _draw_image(self):
+    def _draw_image(self, color):
         if self.image:
             button_center = (self.surf.get_width() / 2, self.surf.get_height() / 2)
             image_center = (self.image.get_width() / 2, self.image.get_height() / 2)
             delta_centers = (button_center[0] - image_center[0], button_center[1] - image_center[1])
             self.surf.blit(self.image, (delta_centers[0], delta_centers[1]))
+            self._set_image_color(color)
 
     def _draw_text(self, color):
         if self.text:
@@ -120,16 +124,25 @@ class Button(RectSubsurface):
 
     def _draw_unpressed(self):
         self.surf.fill(self.color)
-        self._draw_text(self.color_pressed)
-        self._draw_image()
+        self._draw_text(self.color_symbol)
+        self._draw_image(self.color_symbol)
 
     def _draw_pressed(self):
         self.surf.fill(self.color_pressed)
-        self._draw_text(self.color)
-        self._draw_image()
+        self._draw_text(self.color_pressed_symbol)
+        self._draw_image(self.color_pressed_symbol)
+
+    def _draw_hover(self):
+        self.surf.fill(self.color_hover)
+        self._draw_text(self.color_hover_symbol)
+        self._draw_image(self.color_hover_symbol)
     
     def draw_update(self):
-        if self.pressed:
-            self._draw_pressed()
-        else:
-            self._draw_unpressed()
+        if self.show:
+            mouse_over = self.get_abs_bbox().collidepoint(pygame.mouse.get_pos())
+            if self.pressed:
+                self._draw_pressed()
+            elif mouse_over:
+                self._draw_hover()
+            else:
+                self._draw_unpressed()
