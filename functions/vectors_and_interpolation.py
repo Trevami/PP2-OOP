@@ -140,10 +140,11 @@ def lin_interpolate_shape(shape: list, num_new_pts: int):
     # In reduced_shape point list duplicate points are removed (for interpolation).
     reduced_shape = list(dict.fromkeys(shape.copy()))
 
+    # Adds first point to close the reduced shape.
+    reduced_shape.append(shape[-1])
+
     # No interpolation if fewer points are given than the number of points present in the reduced_shape.
     if num_new_pts <= len(reduced_shape):
-        # Adds first point to close the reduced shape.
-        reduced_shape.append(shape[-1])
         return reduced_shape
 
     interpol_shape = []
@@ -160,8 +161,5 @@ def lin_interpolate_shape(shape: list, num_new_pts: int):
         interpol_points = lin_interpolate(point1, point2, num_interpol_points)
         interpol_shape.append(point1)
         interpol_shape.extend(interpol_points)
-
-    # Adds first point to close the reduced shape.
-    interpol_shape.append(shape[-1])
 
     return interpol_shape
