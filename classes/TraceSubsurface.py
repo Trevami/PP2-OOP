@@ -31,13 +31,14 @@ class TraceSubsurface(RectSubsurface):
         self.trace.clear()
 
     def draw_trace(self):
-        pygame.draw.lines(
-            self.surf,
-            self.trace_color,
-            False,
-            self.trace,
-            width=self.trace_width
-        )
+        if len(self.trace) >= 2:
+            pygame.draw.lines(
+                self.surf,
+                self.trace_color,
+                False,
+                self.trace,
+                width=self.trace_width
+            )
 
     def set_draw_palette(self, palette: dict):
         self.surf_color = palette["surf_color"]
