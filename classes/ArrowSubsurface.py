@@ -3,7 +3,6 @@ import math
 import cmath
 from classes.TraceSubsurface import TraceSubsurface
 from classes.RotArrow import RotArrow
-from classes.Button import Button
 from classes.SettingsOverlay import SettingsOverlay
 from functions.vectors_and_interpolation import *
 from functions.setting_elements.ArrowSetElements import create_arrow_setting_objs
@@ -15,6 +14,7 @@ class ArrowSubsurface(TraceSubsurface):
         defaultKwargs = {
             "shape_interpol_pts": 400, # Should be around or higher than the number of arrows.
             "shape": False,
+            "show_shape_points": False,
             "arrow_circles": True,
             "trace_length": 3000,
             "surf_color": pygame.Color(25, 22, 20),
@@ -22,6 +22,8 @@ class ArrowSubsurface(TraceSubsurface):
             "arrow1_color": pygame.Color(40, 120, 40),
             "cross_color": pygame.Color(80, 80, 80),
             "shape_color": pygame.Color(0, 80, 200),
+            "shape_point_color": pygame.Color(200, 80, 0),
+            "arrow_speed": 50
         }
         kwargs = defaultKwargs | kwargs
         self._arrow_group = pygame.sprite.Group()
@@ -37,11 +39,13 @@ class ArrowSubsurface(TraceSubsurface):
         self.arrow1_color = kwargs["arrow1_color"]
         self.cross_color = kwargs["cross_color"]
         self.shape_color = kwargs["shape_color"]
-        self.arrow_speed = int(self.settigs_overlay.objs["speed_slider"].value)
+        self.shape_point_color = kwargs["shape_point_color"]
+        self.show_shape_points = kwargs["show_shape_points"]
+        self.arrow_speed = kwargs["arrow_speed"]
 
-    def set_shape(self, shape):
+    def set_shape(self, shape, recalc=True):
         # Interpolates shape if more than 3 points.
-        if len(shape) >= 3:
+        if len(shape) >= 3 and recalc:
             self.shape_points = lin_interpolate_shape(shape, self.shape_interpol_pts)
         else:
             self.shape_points = shape
@@ -61,7 +65,7 @@ class ArrowSubsurface(TraceSubsurface):
         # Higher speed values increase the speed of the arrows.
         return self.arrow_speed * 5 / self._shape_len
 
-    def create_arrows(self):
+    def create_arrows(self, num_arrows: int):
         if len(self.shape_points) >= 3:
             # Removes old arrows.
             self.clear_arrows()
@@ -70,7 +74,7 @@ class ArrowSubsurface(TraceSubsurface):
             # The var: constant sets the init size (real part) and the angle (imag part) of arrow.
             # The var: exp_mult determines the exp multipliers of Euler's equation.
             exp_mult = 0 # Start point for series generation.
-            for i in range(int(self.settigs_overlay.objs["arrow_slider"].value)):
+            for i in range(num_arrows):
                 # Generates a series of exp multipliers: 0, 1, -1, 2, -2 ...
                 exp_mult += (-1)**i * -i
                 constant = 0
@@ -145,8 +149,8 @@ class ArrowSubsurface(TraceSubsurface):
         self._arrow_group.sprites()[0].color = self.arrow1_color
         self._arrow_group.sprites()[0].circle = False
 
-    def update_arrow_speed(self):
-        self.arrow_speed = int(self.settigs_overlay.objs["speed_slider"].value)
+    def update_arrow_speed(self, speed: int):
+        self.arrow_speed = speed
 
     def _draw_arrows(self):
         # Draws arrows.
@@ -184,6 +188,16 @@ class ArrowSubsurface(TraceSubsurface):
                 width=int(self.trace_width / 2)
             )
 
+    def _draw_shape_points(self):
+        if self.show_shape_points and len(self.trace) >= 3:
+            for point in self.trace[1:]:
+                pygame.draw.circle(
+                    self.surf,
+                    self.shape_point_color,
+                    point,
+                    2
+                )
+
     def _draw_settigs_overlay(self):
         self.settigs_overlay.draw_update()
 
@@ -194,4 +208,5 @@ class ArrowSubsurface(TraceSubsurface):
         self._draw_shape()
         self._draw_arrows()
         self._draw_trace()
+        self._draw_shape_points()
         self._draw_settigs_overlay()
