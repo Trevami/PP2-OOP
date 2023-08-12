@@ -21,7 +21,8 @@ class Slider(RectSubsurface):
             "bar_color": pygame.Color(85, 85, 85),
             "bar_color_pressed": pygame.Color(155, 155, 155),
             "background_color": pygame.Color(0, 0, 0, 128),
-            "type": "int"
+            "type": "int",
+            "show": True
         }
         kwargs = defaultKwargs | kwargs
         self.bar_x_pos = 0
@@ -41,6 +42,7 @@ class Slider(RectSubsurface):
         self.pos_value_lookup = self._get_value_pos_lookup(
             kwargs["min"], kwargs["max"], kwargs["ticks"])
         self._init_slider_bar_pos()
+        self.show = kwargs["show"]
 
     def set_new_values(self, min_value: float, max_value: float, num_value_ticks: int):
         self.pos_value_lookup = self._get_value_pos_lookup(
@@ -153,11 +155,24 @@ class Slider(RectSubsurface):
                 break
 
     def update_x_pos(self, x_pos: float):
-        # Sets the input x_pos to the center of the bar.
+        # Sets the center of the bar to the input x_pos.
         x_pos = x_pos - self.bar_width / 2 - self.surf.get_abs_offset()[0]
 
         # Gets a list of all possible x_pos values.
         value_pos = list(self.pos_value_lookup.keys())
+        
+        # Checks for values outside of range.
+        # Assigns min and max values accordingly.
+        max_x_pos = max(value_pos)
+        min_x_pos = min(value_pos)
+        if x_pos >= max_x_pos:
+            self.bar_x_pos = max_x_pos
+            self.value = self.pos_value_lookup[max_x_pos]
+            return
+        elif x_pos <= min_x_pos:
+            self.bar_x_pos = min_x_pos
+            self.value = self.pos_value_lookup[min_x_pos]
+            return
 
         # Iterates trough possible x_pos pairs and checks if input x_pos is near to one.
         # Sets the new x_pos of the bar to a set x_pos if input x_pos is near to it.
@@ -166,9 +181,11 @@ class Slider(RectSubsurface):
                 if abs(x_pos - value_pos[i]) < abs(x_pos - value_pos[i - 1]):
                     self.bar_x_pos = value_pos[i]
                     self.value = self.pos_value_lookup[value_pos[i]]
+                    return
                 else:
                     self.bar_x_pos = value_pos[i - 1]
                     self.value = self.pos_value_lookup[value_pos[i - 1]]
+                    return
 
     def _draw_bar(self):
         # Draw bar:
@@ -204,9 +221,10 @@ class Slider(RectSubsurface):
         self.surf.blit(blit_surf, (0, 0))
 
     def draw_update(self):
-        self.draw_background()
-        #self.surf.fill(self.background_color)
-        self._adjust_text_size()
+        if self.show:
+            self.draw_background()
+            #self.surf.fill(self.background_color)
+            self._adjust_text_size()
 
-        self._draw_bar()
-        self._draw_text()
+            self._draw_bar()
+            self._draw_text()
